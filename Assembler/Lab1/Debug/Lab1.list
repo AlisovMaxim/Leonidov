@@ -1,0 +1,244 @@
+
+Lab1.elf:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .isr_vector   00000130  08000000  08000000  00001000  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  1 .text         00000100  08000130  08000130  00001130  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .rodata       00000000  08000230  08000238  00001238  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  3 .ARM.extab    00000000  08000230  08000230  00001238  2**0
+                  CONTENTS, READONLY
+  4 .ARM          00000000  08000230  08000230  00001238  2**0
+                  CONTENTS, READONLY
+  5 .preinit_array 00000000  08000230  08000238  00001238  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  6 .init_array   00000004  08000230  08000230  00001230  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  7 .fini_array   00000004  08000234  08000234  00001234  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  8 .data         00000000  20000000  20000000  00001238  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  9 .bss          0000001c  20000000  08000238  00002000  2**2
+                  ALLOC
+ 10 ._user_heap_stack 00000604  2000001c  08000238  0000201c  2**0
+                  ALLOC
+ 11 .ARM.attributes 00000029  00000000  00000000  00001238  2**0
+                  CONTENTS, READONLY
+ 12 .debug_line   00000090  00000000  00000000  00001261  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 13 .debug_line_str 0000005b  00000000  00000000  000012f1  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 14 .debug_info   00000031  00000000  00000000  0000134c  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 15 .debug_abbrev 00000024  00000000  00000000  0000137d  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 16 .debug_aranges 00000028  00000000  00000000  000013a8  2**3
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 17 .debug_str    00000077  00000000  00000000  000013d0  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 18 .debug_rnglists 0000001a  00000000  00000000  00001447  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+
+Disassembly of section .text:
+
+08000130 <__do_global_dtors_aux>:
+ 8000130:	b510      	push	{r4, lr}
+ 8000132:	4c05      	ldr	r4, [pc, #20]	@ (8000148 <__do_global_dtors_aux+0x18>)
+ 8000134:	7823      	ldrb	r3, [r4, #0]
+ 8000136:	b933      	cbnz	r3, 8000146 <__do_global_dtors_aux+0x16>
+ 8000138:	4b04      	ldr	r3, [pc, #16]	@ (800014c <__do_global_dtors_aux+0x1c>)
+ 800013a:	b113      	cbz	r3, 8000142 <__do_global_dtors_aux+0x12>
+ 800013c:	4804      	ldr	r0, [pc, #16]	@ (8000150 <__do_global_dtors_aux+0x20>)
+ 800013e:	f3af 8000 	nop.w
+ 8000142:	2301      	movs	r3, #1
+ 8000144:	7023      	strb	r3, [r4, #0]
+ 8000146:	bd10      	pop	{r4, pc}
+ 8000148:	20000000 	.word	0x20000000
+ 800014c:	00000000 	.word	0x00000000
+ 8000150:	08000218 	.word	0x08000218
+
+08000154 <frame_dummy>:
+ 8000154:	b508      	push	{r3, lr}
+ 8000156:	4b03      	ldr	r3, [pc, #12]	@ (8000164 <frame_dummy+0x10>)
+ 8000158:	b11b      	cbz	r3, 8000162 <frame_dummy+0xe>
+ 800015a:	4903      	ldr	r1, [pc, #12]	@ (8000168 <frame_dummy+0x14>)
+ 800015c:	4803      	ldr	r0, [pc, #12]	@ (800016c <frame_dummy+0x18>)
+ 800015e:	f3af 8000 	nop.w
+ 8000162:	bd08      	pop	{r3, pc}
+ 8000164:	00000000 	.word	0x00000000
+ 8000168:	20000004 	.word	0x20000004
+ 800016c:	08000218 	.word	0x08000218
+
+08000170 <Reset_Handler>:
+  .section .text.Reset_Handler
+  .weak Reset_Handler
+  .type Reset_Handler, %function
+Reset_Handler:
+
+	ldr   r0, =_estack
+ 8000170:	4823      	ldr	r0, [pc, #140]	@ (8000200 <delay_loop+0xa>)
+	mov   sp, r0          				/* set stack pointer */
+ 8000172:	4685      	mov	sp, r0
+
+@Начало кода
+@Включение тактирование порта IOPСEN
+	ldr		r0, =PERIPH_BB_BASE + (RCC_APB2ENR-PERIPH_BASE)*32 + 4*4
+ 8000174:	4823      	ldr	r0, [pc, #140]	@ (8000204 <delay_loop+0xe>)
+										@ вычисляем адрес для BitBanding 2-го бита регистра RCC_APB2ENR
+	mov		r1, #1						@ включаем тактирование порта A (во 2-й бит RCC_APB2ENR пишем '1`)
+ 8000176:	f04f 0101 	mov.w	r1, #1
+	str 	r1, [r0]					@ загружаем это значение
+ 800017a:	6001      	str	r1, [r0, #0]
+
+@Настройка работы порта
+	ldr		r0, =GPIOC_CRL				@ адрес порта
+ 800017c:	4822      	ldr	r0, [pc, #136]	@ (8000208 <delay_loop+0x12>)
+	mov		r1, #0x03					@ 4-битная маска настроек для Output mode 50mHz, Push-Pull ("0011")
+ 800017e:	f04f 0103 	mov.w	r1, #3
+	ldr		r2, [r0]					@ считать порт
+ 8000182:	6802      	ldr	r2, [r0, #0]
+    bfi		r2, r1, #16, #4    			@ скопировать 4 бита из r1 начиная с 20 бита в r2
+ 8000184:	f361 4213 	bfi	r2, r1, #16, #4
+    str		r2, [r0]					@ загрузить результат в регистр настройки порта
+ 8000188:	6002      	str	r2, [r0, #0]
+
+    ldr		r0, =GPIOC_BSRR				@ адрес порта выходных сигналов
+ 800018a:	4820      	ldr	r0, [pc, #128]	@ (800020c <delay_loop+0x16>)
+
+0800018c <loop>:
+
+loop:									@ Бесконечный цикл
+	ldr     r5, =GPIOC_IDR
+ 800018c:	4d20      	ldr	r5, [pc, #128]	@ (8000210 <delay_loop+0x1a>)
+	ldr     r6, [r5]
+ 800018e:	682e      	ldr	r6, [r5, #0]
+
+	tst     r6, #0b1
+ 8000190:	f016 0f01 	tst.w	r6, #1
+	itt		EQ
+ 8000194:	bf04      	itt	eq
+	ldreq	r3, =0x320				@ псевдоинструкция Thumb (загрузить константу в регистр)
+ 8000196:	f44f 7348 	moveq.w	r3, #800	@ 0x320
+	bleq	play
+ 800019a:	f000 f81d 	bleq	80001d8 <play>
+
+	tst     r6, #0b10
+ 800019e:	f016 0f02 	tst.w	r6, #2
+	itt		EQ
+ 80001a2:	bf04      	itt	eq
+	ldreq	r3, =0x640				@ псевдоинструкция Thumb (загрузить константу в регистр)
+ 80001a4:	f44f 63c8 	moveq.w	r3, #1600	@ 0x640
+	bleq	play
+ 80001a8:	f000 f816 	bleq	80001d8 <play>
+
+	tst     r6, #0b100
+ 80001ac:	f016 0f04 	tst.w	r6, #4
+	itt		EQ
+ 80001b0:	bf04      	itt	eq
+	ldreq	r3, =0x1280				@ псевдоинструкция Thumb (загрузить константу в регистр)
+ 80001b2:	f44f 5394 	moveq.w	r3, #4736	@ 0x1280
+	bleq	play
+ 80001b6:	f000 f80f 	bleq	80001d8 <play>
+
+	tst     r6, #0b1000
+ 80001ba:	f016 0f08 	tst.w	r6, #8
+	itt		EQ
+ 80001be:	bf04      	itt	eq
+	ldreq	r3, =0x2560				@ псевдоинструкция Thumb (загрузить константу в регистр)
+ 80001c0:	f242 5360 	movweq	r3, #9568	@ 0x2560
+	bleq	play
+ 80001c4:	f000 f808 	bleq	80001d8 <play>
+
+	tst     r6, #0b10000000000000
+ 80001c8:	f416 5f00 	tst.w	r6, #8192	@ 0x2000
+	itt		EQ
+ 80001cc:	bf04      	itt	eq
+	ldreq	r3, =0x215				@ псевдоинструкция Thumb (загрузить константу в регистр)
+ 80001ce:	f240 2315 	movweq	r3, #533	@ 0x215
+	bleq	play
+ 80001d2:	f000 f801 	bleq	80001d8 <play>
+
+	b 		loop						@ возвращаемся к началу цикла
+ 80001d6:	e7d9      	b.n	800018c <loop>
+
+080001d8 <play>:
+
+play:
+	push	{LR}
+ 80001d8:	b500      	push	{lr}
+	ldr 	r1, =GPIO_BSRR_BS4			@ устанавливаем вывод в '1'
+ 80001da:	f04f 0110 	mov.w	r1, #16
+	str 	r1, [r0]					@ загружаем в порт
+ 80001de:	6001      	str	r1, [r0, #0]
+
+	bl		delay						@ задержка
+ 80001e0:	f000 f808 	bl	80001f4 <delay>
+
+	ldr		r1, =GPIO_BSRR_BR4			@ сбрасываем в '0'
+ 80001e4:	f44f 1180 	mov.w	r1, #1048576	@ 0x100000
+	str 	r1, [r0]					@ загружаем в порт
+ 80001e8:	6001      	str	r1, [r0, #0]
+
+	bl		delay						@ задержка
+ 80001ea:	f000 f803 	bl	80001f4 <delay>
+	pop		{LR}
+ 80001ee:	f85d eb04 	ldr.w	lr, [sp], #4
+	bx		LR							@ выход из подпрограммы (переход к адресу в регистре LR - вершина стека)
+ 80001f2:	4770      	bx	lr
+
+080001f4 <delay>:
+
+delay:									@ Подпрограмма задержки
+	mov		r4, r3
+ 80001f4:	461c      	mov	r4, r3
+
+080001f6 <delay_loop>:
+delay_loop:
+	subs	r4, #1						@ SUB с установкой флагов результата
+ 80001f6:	3c01      	subs	r4, #1
+	it 		NE
+ 80001f8:	bf18      	it	ne
+	bne		delay_loop						@ переход, если Z==0 (результат вычитания не равен нулю)
+ 80001fa:	e7fc      	bne.n	80001f6 <delay_loop>
+	bx		LR							@ выход из подпрограммы (переход к адресу в регистре LR - вершина стека)
+ 80001fc:	4770      	bx	lr
+ 80001fe:	0000      	.short	0x0000
+	ldr   r0, =_estack
+ 8000200:	20005000 	.word	0x20005000
+	ldr		r0, =PERIPH_BB_BASE + (RCC_APB2ENR-PERIPH_BASE)*32 + 4*4
+ 8000204:	42420310 	.word	0x42420310
+	ldr		r0, =GPIOC_CRL				@ адрес порта
+ 8000208:	40011000 	.word	0x40011000
+    ldr		r0, =GPIOC_BSRR				@ адрес порта выходных сигналов
+ 800020c:	40011010 	.word	0x40011010
+	ldr     r5, =GPIOC_IDR
+ 8000210:	40011008 	.word	0x40011008
+
+08000214 <ADC1_2_IRQHandler>:
+ * @retval : None
+*/
+  .section .text.Default_Handler,"ax",%progbits
+Default_Handler:
+Infinite_Loop:
+  b Infinite_Loop
+ 8000214:	e7fe      	b.n	8000214 <ADC1_2_IRQHandler>
+	...
+
+08000218 <_init>:
+ 8000218:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 800021a:	bf00      	nop
+ 800021c:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 800021e:	bc08      	pop	{r3}
+ 8000220:	469e      	mov	lr, r3
+ 8000222:	4770      	bx	lr
+
+08000224 <_fini>:
+ 8000224:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 8000226:	bf00      	nop
+ 8000228:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 800022a:	bc08      	pop	{r3}
+ 800022c:	469e      	mov	lr, r3
+ 800022e:	4770      	bx	lr
